@@ -1,7 +1,7 @@
 To run the code, please install requirements in requirements.txt and run the code 
 
 ``
-python assignment4.py
+python deepQ.py
 ``
 
 The code is set up to run multiple times to generate mean and std learning curves.

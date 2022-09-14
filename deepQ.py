@@ -4,6 +4,8 @@ import gym
 import numpy as np
 import pandas as pd
 from collections import deque
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from tensorflow.keras.layers import Input, Dense
 from tensorflow.keras.optimizers import Adam, RMSprop
 from tensorflow.keras.models import Model, load_model
@@ -64,7 +66,7 @@ class DQNAgent:
         # implement the epsilon-greedy policy
         if len(state.shape) == 1: # catch for dimensionality issues
             state = np.array(state).reshape([1, len(state)])
-        q_out = self.model.predict(state)
+        q_out = self.model.predict(state, verbose=0)
         action = np.argmax(q_out)
         #print('    think best action {}'.format(action))
         if np.random.uniform(0,1) < self.epsilon:
@@ -119,7 +121,7 @@ class DQNAgent:
                 target[i] = self.model.predict(state[i].reshape([1, len(state[i])]))
                 target[i, a] = reward[i] + self.gamma * Q_target_next
 
-        self.model.fit(state, target, batch_size=self.batch_size, verbose=0, epochs=1)
+        self.model.fit(state, target, batch_size=self.batch_size, verbose=False, epochs=1)
 
     def load(self, name):
         self.model = load_model(name)
@@ -194,40 +196,14 @@ class DQNAgent:
 if __name__ == "__main__":
     all_scores = []
 
-    for iteration in range(8):
-        agent = DQNAgent()
-        scores = agent.training()
-        all_scores.append(scores)
-
-        plt.figure()
-        plt.plot(scores, label='example learning curve')
-        plt.legend()
-        pd.Series(scores).to_csv('run{}.csv'.format(iteration))
-        plt.savefig('learningcurve{}.png'.format(iteration))
-        del(agent)
-
-    all_scores = np.array(all_scores)
-    mean = all_scores.mean(axis=0)
-    std = all_scores.std(axis=0)
+    agent = DQNAgent()
+    scores = agent.training()
+    all_scores.append(scores)
 
     plt.figure()
-    plt.plot(all_scores[0], color='blue', alpha=0.7, label = 'run1')
-
-    plt.plot(mean, color='black', label='mean score')
-    plt.plot(mean+std, '--', color='red', label='1 standard deviation')
-    plt.plot(mean-std, '--', color='red')
+    plt.plot(scores, label='example learning curve')
     plt.legend()
-
     plt.xlabel('episode')
     plt.ylabel('score')
-
-    plt.figure()
-    plt.plot(all_scores[0], color='blue', label='run1')
-    plt.plot(all_scores[1], color='red', label='run2')
-    plt.plot(all_scores[2], color='black', label='run3')
-    plt.xlabel('episode')
-    plt.ylabel('score')
-    plt.legend()
 
     plt.show()
-    # agent.test()
