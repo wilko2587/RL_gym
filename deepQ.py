@@ -95,7 +95,7 @@ class DQNAgent:
             ministate, miniaction, minireward, mininextstate, minidone = minibatch[i]
             state[i] = ministate
             next_state[i] = mininextstate
-            action.append(self.act(state[i]))
+            action.append(self.act(state[i])) # TODO: shouldn't this be miniaction????
             reward.append(minireward)
             done.append(minidone)
 
@@ -107,7 +107,7 @@ class DQNAgent:
             a = action[i]
             if done[i]:
                 #print(state[i], next_state[i], action[i])
-                target[i] = self.model.predict(state[i].reshape([1, len(state[i])]))
+                target[i] = self.model.predict(state[i].reshape([1, len(state[i])]), verbose=0)
                 target[i, a] = reward[i] # -100
             else:
                 # else, use Bellman Equation
@@ -115,10 +115,10 @@ class DQNAgent:
                 # DQN chooses the max Q value among next actions
                 # selection and evaluation of action is on the target Q Network
                 # target = max_a' (r + gamma*Q_target_next(s', a'))
-                Q_target_next = np.max( self.model.predict(next_state[i].reshape([1, len(next_state[i])])) )
+                Q_target_next = np.max( self.model.predict(next_state[i].reshape([1, len(next_state[i])]), verbose=0) )
                 # set the target to the models current predictions, then alter the index corresponding to the action only
                 # this way the network only trains the taken action given the state
-                target[i] = self.model.predict(state[i].reshape([1, len(state[i])]))
+                target[i] = self.model.predict(state[i].reshape([1, len(state[i])]), verbose=0)
                 target[i, a] = reward[i] + self.gamma * Q_target_next
 
         self.model.fit(state, target, batch_size=self.batch_size, verbose=False, epochs=1)
@@ -185,7 +185,7 @@ class DQNAgent:
             i = 0
             while not done:
                 # self.env.render()
-                action = np.argmax(self.model.predict(state))
+                action = np.argmax(self.model.predict(state, verbose=0))
                 next_state, reward, done, _ = self.env.step(action)
                 state = np.reshape(next_state, [1, self.state_size])
                 i += 1
