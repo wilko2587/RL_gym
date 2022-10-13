@@ -22,7 +22,7 @@ def OurModel(input_shape, action_space):
 
     # Hidden layer with 256 nodes
     X = Dense(256, activation="relu", kernel_initializer='he_uniform')(X)
-    
+
     # Hidden layer with 64 nodes
     X = Dense(64, activation="relu", kernel_initializer='he_uniform')(X)
 
@@ -43,7 +43,7 @@ class DQNAgent:
         self.action_size = self.env.action_space.n
         self.EPISODES = 500
         self.memory = deque(maxlen=2000)
-        
+
         self.gamma = 0.95   # discount rate
         self.epsilon = 1.0  # exploration rate
         self.epsilon_min = 0.000
@@ -59,7 +59,7 @@ class DQNAgent:
         if len(self.memory) > self.train_start:
             if self.epsilon > self.epsilon_min:
                 self.epsilon *= self.epsilon_decay
-    
+
     # to do
     # implement the epsilon-greedy policy
     def act(self, state):
@@ -95,7 +95,7 @@ class DQNAgent:
             ministate, miniaction, minireward, mininextstate, minidone = minibatch[i]
             state[i] = ministate
             next_state[i] = mininextstate
-            action.append(self.act(state[i])) # TODO: shouldn't this be miniaction????
+            action.append(miniaction)
             reward.append(minireward)
             done.append(minidone)
 
@@ -128,31 +128,31 @@ class DQNAgent:
 
     def save(self, name):
         self.model.save(name)
-            
+
     def training(self):
 
         scores = []
         for e in range(self.EPISODES):
-            state = self.env.reset()
+            state, _ = self.env.reset()
             state = np.reshape(state, [1, self.state_size])
             done = False
             i = 0
 
             actions = []
             while not done:
-                # if you have graphic support, you can render() to see the animation. 
+                # if you have graphic support, you can render() to see the animation.
                 #self.env.render()
 
                 action = self.act(state)
                 actions.append(action)
-                next_state, reward, done, _ = self.env.step(action)
+                next_state, reward, done, _, _ = self.env.step(action)
 
                 next_state = np.reshape(next_state, [1, self.state_size])
                 if not done or i == self.env._max_episode_steps-1:
                     reward = reward # Reward --> +1
                 else:
                     reward = -100 # Reward = -100
-                    
+
                 self.remember(state, action, reward, next_state, done)
 
                 #if e > 50:
